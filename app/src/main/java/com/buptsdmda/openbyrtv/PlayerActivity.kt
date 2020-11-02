@@ -1,32 +1,47 @@
 package com.buptsdmda.openbyrtv
 
-
-import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
-import android.webkit.WebView
-import android.widget.VideoView
+import android.os.Handler
+
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
-import com.universalvideoview.UniversalMediaController
-import com.universalvideoview.UniversalVideoView
-import com.universalvideoview.UniversalVideoView.VideoViewCallback
+
+import com.google.android.exoplayer2.*
+
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView
+
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+
+
 
 
 class PlayerActivity : AppCompatActivity() {
     val instance by lazy { this }
+    private var player:SimpleExoPlayer?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_player)
 
-        //var mWebview=findViewById<WebView>(R.id.webView)
-        //
-        //mWebview.loadUrl("file:///android_asset/player.html")
-        var videoView=findViewById<VideoView>(R.id.videoView)
+        var videoView=findViewById<SimpleExoPlayerView>(R.id.playerView)
+
+
+        player = ExoPlayerFactory.newSimpleInstance(
+            DefaultRenderersFactory(instance), DefaultTrackSelector(), DefaultLoadControl())
+
         var url = intent.getStringExtra("url")
-        videoView.setVideoPath(url)
+
+        videoView.player=player
+
+        val uri = Uri.parse(url)
+        val dataSourceFactory = DefaultDataSourceFactory(instance, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6 Greatwqs")
+        val mediaSource = HlsMediaSource(uri,dataSourceFactory,null,null)
+        player?.prepare(mediaSource)
+        player?.playWhenReady = true
+
     }
 }
