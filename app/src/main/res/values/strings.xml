@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">OpenBYRTV</string>
+    <string name="title_activity_choose_cache">已下载的缓存...</string>
+    <string name="title_activity_download">DownloadActivity</string>
 </resources>

@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.AsyncHttpResponseHandler
 import cz.msebera.android.httpclient.Header
@@ -25,7 +26,9 @@ class ChannelActivity : AppCompatActivity() {
         setContentView(R.layout.activity_channel)
         var recycleView=findViewById<RecyclerView>(R.id.recyclerView)
 
-
+        findViewById<FloatingActionButton>(R.id.floatingActionButton).setOnClickListener {
+            startActivity(intentFor<ChooseCacheActivity>().newTask())
+        }
 
         var doc=Jsoup.parse(String(intent.getByteArrayExtra("text")!!))
         var elems=doc.getElementsByClass("content-item__card")
@@ -54,7 +57,7 @@ class ChannelActivity : AppCompatActivity() {
                     ) {
                         var body= String(responseBody!!)
                         var m3u8url="http://"+Regex("(tv\\.byr\\.cn/liverespath/.*?/index\\.m3u8)").find(body)!!.groups[0]!!.value
-                        startActivity(intentFor<PlayerActivity>("url" to m3u8url).newTask())
+                        startActivity(intentFor<PlayerActivity>("url" to m3u8url,"title" to channelList[position].name,"detail" to channelList[position].desc).newTask())
                         //startActivity(intentFor<ChannelActivity>("url" to responseBody).newTask().clearTask()) // Pop self & Push new ChannelActivity
                     }
                     override fun onFailure(
