@@ -36,6 +36,7 @@ dependencies {
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation 'com.arthenica:mobile-ffmpeg-full:4.4'
     implementation 'com.danikula:videocache:2.7.1'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
     //implementation 'com.github.psaravan:FileBrowserView:95fc021836'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'com.google.android.exoplayer:exoplayer-core:2.6.0'

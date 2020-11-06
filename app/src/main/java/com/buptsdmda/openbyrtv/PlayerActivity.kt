@@ -59,7 +59,7 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
             val mediaSource = HlsMediaSource(Uri.parse(url),dataSourceFactory,null,null)
             player?.prepare(mediaSource)
             player?.playWhenReady = true
-        }else if(url!!.startsWith("file")){
+        }else if(url!!.startsWith("file://")){
                 val mediaSource = ExtractorMediaSource(Uri.parse(url),dataSourceFactory,DefaultExtractorsFactory(),null,null)
                 player?.prepare(mediaSource)
                 player?.playWhenReady=true

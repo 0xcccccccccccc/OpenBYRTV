@@ -38,7 +38,7 @@
 
             <TextView
                 android:id="@+id/textTitle"
-                android:layout_width="358dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="TextView"
                 android:textColor="#000000"
@@ -47,8 +47,9 @@
 
             <ImageButton
                 android:id="@+id/imageButton"
-                android:layout_width="50dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="100dp"
                 android:layout_weight="1"
                 app:srcCompat="@android:drawable/stat_sys_download" />
 

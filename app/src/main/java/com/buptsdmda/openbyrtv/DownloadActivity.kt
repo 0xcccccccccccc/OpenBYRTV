@@ -82,7 +82,7 @@ class DownloadActivity : AppCompatActivity() {
 //                }
 //
 //                })
-            val cmd=String.format("-i %s -vcodec copy -acodec copy -absf aac_adtstoasc %s.mp4",url,instance.getFilesDir().getPath()+"/"+title+ Date().time.toString())
+            val cmd=String.format("-i %s -vcodec copy -acodec copy -absf aac_adtstoasc -s 1280x720 %s.mp4",url,instance.getFilesDir().getPath()+"/"+title+ Date().time.toString())
             val thread=Thread() {
                 //Toast.makeText(instance,"下载开始",Toast.LENGTH_SHORT).show()
                 val executionId =
