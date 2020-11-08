@@ -1,11 +1,13 @@
 package com.buptsdmda.openbyrtv
 
 import android.app.Application
+import android.app.Dialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.loopj.android.http.*;
 import cz.msebera.android.httpclient.Header
 import org.jetbrains.anko.clearTask
@@ -37,6 +39,7 @@ class WelcomeActivity : AppCompatActivity() {
             ) {
                 startActivity(intentFor<ChannelActivity>("text" to responseBody).newTask().clearTask()) // Pop self & Push new ChannelActivity
             }
+
             override fun onFailure(
                 statusCode: Int,
                 headers: Array<out Header>?,
@@ -44,13 +47,20 @@ class WelcomeActivity : AppCompatActivity() {
                 error: Throwable?
             ) {
                 if(statusCode==403){
-                    Toast.makeText(instance,"Access Denied! IPV6 may still unsuported in your current network!",Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(instance,"Access Denied! IPV6 may still unsuported in your current network!",Toast.LENGTH_SHORT).show()
+                    val alert=AlertDialog.Builder(instance)
+                    alert.setMessage("与服务器的连接被拒绝，请在IPV6环境下使用本App！")
+                    alert.show()
                 }
                 else {
-                    Toast.makeText(instance, "Network error!", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(instance, "Network error!", Toast.LENGTH_SHORT).show()
+                    val alert=AlertDialog.Builder(instance)
+                    alert.setMessage("网络错误！")
+                    alert.show()
                 }
                 System.exit(0);
             }
+
 
         })
 

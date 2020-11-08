@@ -1,20 +1,20 @@
 package com.buptsdmda.openbyrtv
 
-import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
+import android.view.DragEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import com.danikula.videocache.CacheListener
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import org.jetbrains.anko.audioManager
 import org.jetbrains.anko.intentFor
 import org.jetbrains.anko.newTask
 import java.io.File
@@ -34,7 +35,18 @@ import java.io.File
 class PlayerActivity : AppCompatActivity(),CacheListener {
     val instance by lazy { this }
     private var player:SimpleExoPlayer?=null
-    var fullscreen = false
+    private var fullscreen = false
+    enum class TOUCH_STATUS{
+        INIT,
+        ACTIVATED
+
+    }
+    private var x=0
+    private var y=0
+    private var originalVolume=0.0
+    private var originalBrightness=0.0
+    private var touchStatus=TOUCH_STATUS.INIT;
+    private var controllerActivated=false;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +79,122 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
             instance.finish()
         }
 
+//        videoView.setOnDragListener(object :View.OnDragListener{
+//            override fun onDrag(v: View?, event: DragEvent?): Boolean {
+//                when(event!!.action){
+//                    DragEvent.
+//                }
+//            }
+//
+//        })
+        videoView.hideController()
+        videoView.controllerAutoShow=false
+        videoView.controllerHideOnTouch=false
+
+
+
+        videoView.setOnTouchListener(object:View.OnTouchListener{
+
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                val action = event!!.action
+                when (action) {
+
+                    MotionEvent.ACTION_MOVE-> {
+                        val upX = event.rawX.toInt()
+                        val upY = event.rawY.toInt()
+                        val disX = upX - x
+                        val disY = upY - y
+                        if (Math.abs(disX) < Math.abs(disY) && Math.abs(
+                                disY
+                            ) > 20
+                        ) {
+
+
+                            if (touchStatus == TOUCH_STATUS.INIT) {
+                                touchStatus = TOUCH_STATUS.ACTIVATED
+                                originalVolume=audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toDouble()
+                                originalBrightness=Math.abs(window.attributes.screenBrightness.toDouble())
+
+                            }
+
+                            val tuneRatio=Math.min(1.5,Math.max(0.5,1.0+(-disY.toFloat() / videoView.measuredHeight.toFloat())))
+
+                            if(x<videoView.measuredWidth.toFloat()/2){//volume
+
+                                val maxVol=audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                                val minVol= if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC) else 0
+
+                                val volRange=maxVol-minVol
+
+                                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,Math.min(maxVol,Math.max(minVol,(originalVolume+volRange*(tuneRatio-1.0)).toInt())),AudioManager.FLAG_SHOW_UI)
+                            }
+                            else{//brightness
+                                window.attributes.screenBrightness=(255.0*(tuneRatio-0.5)).toFloat()
+
+
+                            }
+                            Log.d(
+                                    "Ratio",
+                                    tuneRatio.toString()
+
+                                )
+                            Log.d(
+                                "Brightness",
+                                window.attributes.screenBrightness.toString()
+
+                            )
+
+//                            if (!fullscreen) {
+//                                Log.d(
+//                                    "Brightness",
+//                                    (-disY.toFloat() / videoView.measuredHeight.toFloat()).toString()
+//                                )
+//
+//
+//
+//                            } else {
+//                                Log.d(
+//                                    "Brightness",
+//                                    (-disY.toFloat() / videoView.measuredHeight.toFloat()).toString()
+//
+//                                )
+//
+//                            }
+                            return true
+
+
+//                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)+disX,AudioManager.FLAG_SHOW_UI)
+
+                                //window.attributes.screenBrightness+=(disY.toFloat()/videoView.layoutParams.height.toFloat())
+                        }
+                        return false
+                    }
+                    MotionEvent.ACTION_DOWN -> {
+                        x = event.rawX.toInt()
+                        y = event.rawY.toInt()
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        x = 0
+                        y = 0
+                        if(touchStatus==TOUCH_STATUS.INIT){//Click
+                            if(controllerActivated)
+                            {videoView.hideController()}
+                            else {videoView.showController()}
+                            controllerActivated=!controllerActivated
+                            return false
+                        }else if(touchStatus==TOUCH_STATUS.ACTIVATED){
+                            touchStatus=TOUCH_STATUS.INIT
+                            return true
+                        }
+
+                    }
+                }
+                return false
+            }
+
+
+        })
 
         findViewById<ImageButton>(R.id.imageButton).setOnClickListener {
             startActivity(intentFor<DownloadActivity>("url" to url,"title" to title,"detail" to detail).newTask())
@@ -90,7 +218,7 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
             params.height =ViewGroup.LayoutParams.MATCH_PARENT
             playerView.setLayoutParams(params)
             findViewById<LinearLayout>(R.id.TextArea).visibility=LinearLayout.INVISIBLE
-            //fullscreen = false
+            fullscreen = true
         } else {// back to normal
 
             val params =
@@ -99,7 +227,7 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
             params.height = (252*dm.density).toInt()
             playerView.setLayoutParams(params)
             findViewById<LinearLayout>(R.id.TextArea).visibility=LinearLayout.VISIBLE
-            //fullscreen = true
+            fullscreen = false
         }
     }
 
