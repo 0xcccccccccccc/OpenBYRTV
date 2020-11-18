@@ -1,5 +1,6 @@
 package com.buptsdmda.openbyrtv
 
+import android.app.Activity
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.Uri
@@ -7,10 +8,10 @@ import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -47,7 +48,11 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
     private var originalBrightness=0.0
     private var touchStatus=TOUCH_STATUS.INIT;
     private var controllerActivated=false;
-
+    private fun setLight(context: Activity, brightness: Int) {
+        val lp: WindowManager.LayoutParams = context.getWindow().getAttributes()
+        lp.screenBrightness = java.lang.Float.valueOf(brightness.toFloat()) * (1f / 255f)
+        context.getWindow().setAttributes(lp)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
@@ -129,7 +134,9 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
                                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,Math.min(maxVol,Math.max(minVol,(originalVolume+volRange*(tuneRatio-1.0)).toInt())),AudioManager.FLAG_SHOW_UI)
                             }
                             else{//brightness
-                                window.attributes.screenBrightness=(255.0*(tuneRatio-0.5)).toFloat()
+
+                                //window.attributes.screenBrightness=(255.0*(tuneRatio-0.5)).toFloat()
+                                setLight(instance,(255.0*(tuneRatio-0.5)).toInt())
 
 
                             }
