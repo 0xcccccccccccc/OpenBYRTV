@@ -2,6 +2,7 @@ package com.buptsdmda.openbyrtv
 
 import android.app.Application
 import android.app.Dialog
+import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -49,16 +50,24 @@ class WelcomeActivity : AppCompatActivity() {
                 if(statusCode==403){
                     //Toast.makeText(instance,"Access Denied! IPV6 may still unsuported in your current network!",Toast.LENGTH_SHORT).show()
                     val alert=AlertDialog.Builder(instance)
-                    alert.setMessage("与服务器的连接被拒绝，请在IPV6环境下使用本App！")
-                    alert.show()
+                    alert.setMessage("与服务器的连接被拒绝，请在IPV6环境下使用本App！").setNeutralButton("Exit",object:DialogInterface.OnClickListener {
+                        override fun onClick(dialog: DialogInterface?, which: Int) {
+                            System.exit(0);
+                        }
+                    })
+                    alert.create().show()
                 }
                 else {
                     //Toast.makeText(instance, "Network error!", Toast.LENGTH_SHORT).show()
-                    val alert=AlertDialog.Builder(instance)
-                    alert.setMessage("网络错误！")
-                    alert.show()
+                    val alert=AlertDialog.Builder(instance).setMessage("网络错误！").setNeutralButton("Exit",object:DialogInterface.OnClickListener {
+                        override fun onClick(dialog: DialogInterface?, which: Int) {
+                            System.exit(0);
+                        }
+
+                    })
+                    alert.create().show()
                 }
-                System.exit(0);
+
             }
 
 
