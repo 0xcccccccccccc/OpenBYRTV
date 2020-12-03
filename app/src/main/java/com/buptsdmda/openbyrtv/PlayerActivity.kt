@@ -23,10 +23,13 @@ import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.hls.HlsDataSourceFactory
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import org.jetbrains.anko.audioManager
 import org.jetbrains.anko.intentFor
 import org.jetbrains.anko.newTask
@@ -67,17 +70,28 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
         var detail = intent.getStringExtra("detail")
         findViewById<TextView>(R.id.textTitle).setText(title)
         findViewById<TextView>(R.id.textDetail).setText(detail)
-        val dataSourceFactory = DefaultDataSourceFactory(instance, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6 Greatwqs")
+        //val dataSourceFactory = DefaultDataSourceFactory(instance, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6 Greatwqs")
+
         if(url!!.startsWith("http")){
 
             videoView.player=player
 
+            val httpDataSourceFactory=DefaultHttpDataSourceFactory("Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6 Greatwqs",null)
+            if((application as OpenBYRTVApplication).useVpn){
+                val cookieValue = "wengine_vpn_ticket="+(application as OpenBYRTVApplication).vpn_cookie+";Path=/;Domain=webvpn.bupt.edu.cn"
+                httpDataSourceFactory.defaultRequestProperties.set("Cookie",cookieValue)
 
-            val mediaSource = HlsMediaSource(Uri.parse(url),dataSourceFactory,null,null)
+            }
+
+            val mediaSource = HlsMediaSource(Uri.parse(url),httpDataSourceFactory,null,null)
+
+
             player?.prepare(mediaSource)
             player?.playWhenReady = true
         }else if(url!!.startsWith("file://")){
-                val mediaSource = ExtractorMediaSource(Uri.parse(url),dataSourceFactory,DefaultExtractorsFactory(),null,null)
+            val dataSourceFactory = DefaultDataSourceFactory(instance, "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.2.6) Gecko/20100625 Firefox/3.6.6 Greatwqs")
+
+            val mediaSource = ExtractorMediaSource(Uri.parse(url),dataSourceFactory,DefaultExtractorsFactory(),null,null)
                 player?.prepare(mediaSource)
                 player?.playWhenReady=true
         }else{
