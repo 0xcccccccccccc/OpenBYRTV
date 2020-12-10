@@ -1,11 +1,17 @@
 package com.buptsdmda.openbyrtv
 
 import android.app.Activity
+import android.app.ProgressDialog
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
@@ -14,6 +20,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.danikula.videocache.CacheListener
@@ -23,23 +30,24 @@ import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
-import com.google.android.exoplayer2.source.hls.HlsDataSourceFactory
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
+import kotlinx.android.synthetic.main.activity_player.*
 import org.jetbrains.anko.audioManager
 import org.jetbrains.anko.intentFor
 import org.jetbrains.anko.newTask
 import java.io.File
+import java.lang.Exception
 
 
 class PlayerActivity : AppCompatActivity(),CacheListener {
     val instance by lazy { this }
     private var player:SimpleExoPlayer?=null
     private var fullscreen = false
+    //private var last_service_intent:Intent?=null
     enum class TOUCH_STATUS{
         INIT,
         ACTIVATED
@@ -56,14 +64,71 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
         lp.screenBrightness = java.lang.Float.valueOf(brightness.toFloat()) * (1f / 255f)
         context.getWindow().setAttributes(lp)
     }
+    private val connection = object : ServiceConnection {
+        override fun onServiceDisconnected(name: ComponentName?) {
+
+        }
+
+        /**
+         * Called after a successful bind with our VideoService.
+         */
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            //We expect the service binder to be the video services binder.
+            //As such we cast.
+            if (service is AudioService.AudioServiceBinder) {
+                //Then we simply set the exoplayer instance on this view.
+                //Notice we are only getting information.
+                // playerView.player = service.getExoPlayerInstance()
+                player!!.playWhenReady=false
+                moveTaskToBack(true)
+                //player!!.release()
+                //moveTaskToBack(true)
+                //instance.finish()
+
+            }
+        }
+
+    }
+
+//    override fun onPause() {
+//        super.onPause()
+//        //instance.finish()
+//    }
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unbindService(connection)
+            stopService(Intent(instance,AudioService::class.java))
+        }
+        catch(e:Exception) {
+
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        try {
+            //stopService((application as OpenBYRTVApplication).last_service_intent!!)
+            unbindService(connection)
+            stopService(Intent(instance,AudioService::class.java))
+        }
+        catch(e:Exception) {
+
+        }
+
+
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
+
         var videoView=findViewById<SimpleExoPlayerView>(R.id.playerView)
 
 
         player = ExoPlayerFactory.newSimpleInstance(
             DefaultRenderersFactory(instance), DefaultTrackSelector(), DefaultLoadControl())
+
 
         var url = intent.getStringExtra("url")
         var title = intent.getStringExtra("title")
@@ -219,6 +284,32 @@ class PlayerActivity : AppCompatActivity(),CacheListener {
 
         findViewById<ImageButton>(R.id.imageButton).setOnClickListener {
             startActivity(intentFor<DownloadActivity>("url" to url,"title" to title,"detail" to detail).newTask())
+        }
+        textView4.setOnClickListener {
+            startActivity(intentFor<DownloadActivity>("url" to url,"title" to title,"detail" to detail).newTask())
+        }
+        imageButton2.setOnClickListener(object :View.OnClickListener{
+            override fun onClick(v: View?) {
+                //ProgressBar(instance).visibility=View.VISIBLE
+                var intent=Intent(instance, AudioService::class.java)
+                intent.putExtra("url",url)
+                bindService(intent, connection, Context.BIND_AUTO_CREATE)
+            }
+
+        })
+        textView5.setOnClickListener{
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                startForegroundService(intentFor<AudioService>("url" to url))
+//                player!!.playWhenReady=false
+//            }
+//            else{
+//                startService(intentFor<AudioService>("url" to url))
+//                player!!.playWhenReady=false
+//            }
+            //ProgressBar(instance).visibility=View.VISIBLE
+            var intent=Intent(instance, AudioService::class.java)
+            intent.putExtra("url",url)
+            bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
 
 

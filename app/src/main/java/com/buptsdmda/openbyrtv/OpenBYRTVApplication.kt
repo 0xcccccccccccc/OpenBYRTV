@@ -2,6 +2,7 @@ package com.buptsdmda.openbyrtv
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import com.danikula.videocache.HttpProxyCacheServer
 import java.net.CookieHandler
 import java.net.CookieStore
@@ -12,6 +13,7 @@ class OpenBYRTVApplication:Application(){
     var vid_root:String="http://tv.byr.cn/"
     var useVpn:Boolean=false
     var vpn_cookie:String=""
+    //var last_service_intent: Intent? =null
 
     fun getProxy(context: Context): HttpProxyCacheServer? {
         val app: OpenBYRTVApplication = context.getApplicationContext() as OpenBYRTVApplication

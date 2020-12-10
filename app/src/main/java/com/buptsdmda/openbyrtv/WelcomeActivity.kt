@@ -1,34 +1,50 @@
 package com.buptsdmda.openbyrtv
 
-import android.app.Application
-import android.app.Dialog
+import android.R.attr
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.content.DialogInterface
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
+import android.graphics.Color.*
 import android.os.Bundle
-import android.view.WindowManager
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.buptsdmda.openbyrtv.WebVpnLoginActivity
-import com.loopj.android.http.*;
+import androidx.appcompat.app.AppCompatActivity
+import com.loopj.android.http.AsyncHttpClient
+import com.loopj.android.http.AsyncHttpResponseHandler
 import cz.msebera.android.httpclient.Header
-import cz.msebera.android.httpclient.cookie.Cookie
 import cz.msebera.android.httpclient.impl.client.BasicCookieStore
 import cz.msebera.android.httpclient.impl.cookie.BasicClientCookie
+import kotlinx.android.synthetic.main.activity_welcome.*
 import org.jetbrains.anko.clearTask
 import org.jetbrains.anko.intentFor
 import org.jetbrains.anko.newTask
-import java.net.CookieHandler
-import java.net.CookieManager
-import java.net.CookieStore
-import java.util.*
+
 
 // vid list:http://tv.byr.cn/vod-show?tags=0_5
 class WelcomeActivity : AppCompatActivity() {
 
     val instance by lazy { this }
+    fun startAnimation(view: View?) {
+        val animationView=view
+        val colorAnimator =
+            ValueAnimator.ofObject(ArgbEvaluator(), Color.BLACK, Color.DKGRAY)
+        colorAnimator.addUpdateListener { animation ->
+            val color = animation.getAnimatedValue() as Int //之后就可以得到动画的颜色了
+            animationView!!.setBackgroundColor(color) //设置一下, 就可以看到效果.
+
+        }
+        colorAnimator.setDuration(1000);
+        // 无限循环播放动画
+        colorAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        // 循环时倒序播放
+        colorAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        colorAnimator.start()
+    }
     override fun onResume() {
         super.onResume()
+        startAnimation(bg_view)
         Toast.makeText(instance,"Loading vidlist",Toast.LENGTH_SHORT).show()
         var asyncHttpClient=AsyncHttpClient();
         asyncHttpClient.addHeader("Content-Type","text/html; charset=UTF-8")
